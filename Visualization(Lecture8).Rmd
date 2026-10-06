@@ -1,0 +1,214 @@
+---
+title: "visualization(Lecture 8).Rmd"
+author: "Meher Walia"
+date: "2026-10-06"
+output: html_document
+---
+
+```{r setup, message = FALSE}
+library(tidyverse)
+library(ggridges)
+library(p8105.datasets)
+
+data("weather_df")
+```
+## Basic scatterplot
+
+```{r}
+ggplot(weather_df, aes(x = tmin, y = tmax))
+```
+
+# you do this if you dont want any points, it creates a plain scatterplot^^^
+
+```{r}
+ggplot(weather_df, aes(x = tmin, y = tmax)) +
+  geom_point()
+```
+
+# do this when you want the points to be visible
+
+```{r}
+weather_df |>
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_point()
+```
+
+```{r}
+ggp_weather = 
+  weather_df |>
+  ggplot(aes(x = tmin, y = tmax)) 
+
+ggp_weather + geom_point()
+```
+
+```{r}
+weather_df |>
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_point(aes(color = name))
+```
+# do this if you want to add color to your scatterplot ^^
+
+```{r}
+weather_df |>
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_point(aes(color = name), alpha = .5) +
+  geom_smooth(se = FALSE)
+```
+
+#if you want a straight line down the middle to appear, use this^^
+
+```{r}
+weather_df |>
+  ggplot(aes(x = tmin, y = tmax, color = name)) + 
+  geom_point(alpha = .5) +
+  geom_smooth(se = FALSE) + 
+  facet_grid(. ~ name)
+```
+
+# use this if you want to split the graph into difdferent areas/panels^^
+
+```{r}
+weather_df |>
+  ggplot(aes(x = date, y = tmax, color = name)) + 
+  geom_point(aes(size = prcp), alpha = .5) +
+  geom_smooth(se = FALSE) + 
+  facet_grid(. ~ name)
+```
+
+# aes, reads the map, use prcp if you want precipitation aka big bubbles, tmax for maximum temperature and tmin for minimum^^
+
+# Step 6: learning assessment
+weather_df |>
+  filter(name == "CentralPark_NY") |>
+  mutate(
+    tmax_fahr = tmax * (9 / 5) + 32,
+    tmin_fahr = tmin * (9 / 5) + 32) |>
+  ggplot(aes(x = tmin_fahr, y = tmax_fahr)) +
+  geom_point(alpha = .5) +
+  geom_smooth(method = "lm", se = FALSE)
+  
+# weather_df |> — start with the full dataset (2,190 rows, all three stations) and pass it along.
+filter(name == "CentralPark_NY") |> — keep only rows where the station is Central Park. Drops it to 730 rows. Note the double ==: one = means "assign," two means "is equal to."
+mutate(...) |> — add two new columns. tmax_fahr = tmax * (9 / 5) + 32 takes each Celsius value and converts it. Same for tmin. The original Celsius columns stay, you've just added to them.
+ggplot(aes(x = tmin_fahr, y = tmax_fahr)) + — start the plot, putting the new Fahrenheit columns on the axes. Note this switches from |> to +, because plot layers get added, not piped.
+geom_point(alpha = .5) + — draw the dots. alpha = .5 makes them half-transparent so you can see where they pile up.
+geom_smooth(method = "lm", se = FALSE) — draw a trend line. method = "lm" means linear model, so a straight line instead of a wiggly curve. se = FALSE hides the grey uncertainty band.
+
+```{r}
+weather_df |> 
+  ggplot(aes(x = date, y = tmax, color = name)) + 
+  geom_smooth(se = FALSE)
+```
+
+```{r}
+weather_df |> 
+  ggplot(aes(x = tmax, y = tmin)) + 
+  geom_hex()
+```
+
+weather_df |> ggplot() + geom_point(aes(x = tmax, y = tmin), color = "blue")
+weather_df |> ggplot() + geom_point(aes(x = tmax, y = tmin, color = "blue"))
+
+# Inside aes() = map to a column. Outside aes() = set a fixed value.^^
+geom_point(aes(color = name)) → color varies by station
+geom_point(color = "blue") → every point is blue
+If you get a legend you didn't want, you put a literal value inside aes() by mistake.
+
+## Univariate plots
+
+```{r}
+weather_df |> 
+  ggplot(aes(x = tmax)) + 
+  geom_histogram()
+```
+
+```{r}
+weather_df |> 
+  ggplot(aes(x = tmax, fill = name)) + 
+  geom_histogram(position = "dodge", binwidth = 2)
+```
+
+```{r}
+weather_df |> 
+  ggplot(aes(x = tmax, fill = name)) + 
+  geom_density(alpha = .4, adjust = .5, color = "blue")
+```
+
+# Step 10: boxplots, violins, and ridges.
+```{r}
+weather_df |> 
+  ggplot(aes(x = name, y = tmax)) + 
+  geom_boxplot()
+```
+
+```{r}
+weather_df |> 
+  ggplot(aes(x = name, y = tmax)) + 
+  geom_violin(aes(fill = name), alpha = .5) + 
+  stat_summary(fun = "median", color = "blue")
+```
+
+```{r}
+weather_df |> 
+  ggplot(aes(x = tmax, y = name)) + 
+  geom_density_ridges(scale = .85)
+```
+
+#Learning assessment
+
+# histogram
+weather_df |> 
+  ggplot(aes(x = prcp, fill = name)) + 
+  geom_histogram(position = "dodge", binwidth = 10)
+
+# density
+weather_df |> 
+  ggplot(aes(x = prcp)) + 
+  geom_density(aes(fill = name), alpha = .5)
+
+# boxplot
+weather_df |> 
+  ggplot(aes(y = prcp, x = name)) + 
+  geom_boxplot()
+
+# violin
+weather_df |> 
+  ggplot(aes(x = name, y = prcp)) + 
+  geom_violin(aes(fill = name), alpha = .5)
+
+# ridge, dropping zero-rain days so the shape is visible
+weather_df |> 
+  filter(prcp > 0) |> 
+  ggplot(aes(x = prcp, y = name)) + 
+  geom_density_ridges(scale = .85)
+  
+## Saving and embedding plots
+
+```{r}
+ggp_weather = 
+  weather_df |> 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_point(aes(color = name), alpha = .5)
+
+ggsave("ggp_weather.pdf", ggp_weather, width = 8, height = 5)
+```
+
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
+
+```{r setup2, message = FALSE}
+library(tidyverse)
+library(ggridges)
+library(p8105.datasets)
+
+data("weather_df")
+
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
+```
